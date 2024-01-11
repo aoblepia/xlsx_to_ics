@@ -4,7 +4,7 @@ from dateutil import parser
 from icalendar import Calendar, Event
 import pytz
 
-# this is the same thing but without the gui and the configurator.
+# this is a super barebones version without gui and configurator.
 # ensure that the filenames and directories are correct for input and output (Line 46-47).
 
 def excel_to_ics(input_excel_file, output_ics_file):
