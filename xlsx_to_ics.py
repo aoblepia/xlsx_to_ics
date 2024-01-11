@@ -8,7 +8,6 @@ from icalendar import Calendar, Event
 from itertools import zip_longest
 import pytz
 
-# uses pyqt5
 class ExcelToICalConverter(QWidget):
     def __init__(self):
         super().__init__()
@@ -32,7 +31,6 @@ class ExcelToICalConverter(QWidget):
         self.configure_button = QPushButton('Configure', self)
         self.configure_button.clicked.connect(self.match_columns)
 
-        # default to eastern, include all
         self.time_zone_label = QLabel('Select Default Time Zone:')
         self.time_zone_combobox = QComboBox(self)
         self.populate_time_zones()
@@ -80,7 +78,7 @@ class ExcelToICalConverter(QWidget):
 
     def browse_input(self):
         file_dialog = QFileDialog()
-        input_file, _ = file_dialog.getOpenFileName(self, 'Select Excel Spreadsheet')   # filter *.xlsx? legacy files too
+        input_file, _ = file_dialog.getOpenFileName(self, 'Select Excel Spreadsheet')
         if input_file:
             self.input_line_edit.setText(input_file)
             
@@ -102,7 +100,8 @@ class ExcelToICalConverter(QWidget):
             self.time_zone_combobox.setCurrentIndex(default_index)
 
     def match_columns(self):
-        self.criteria = ["event_summary", "start_date", "start_time", "end_date", "end_time", "Ignore"]  # Add your criteria here
+        self.criteria = ["event_summary", "start_date", "start_time", "end_date", "end_time", "Ignore"]  # Default criteria. Matches to column_mapping default.
+        
 
         input_file = self.input_line_edit.text()  
         if input_file:
@@ -156,40 +155,46 @@ class ExcelToICalConverter(QWidget):
         selected_tz = pytz.timezone(selected_time_zone)
 
         for row in sheet.iter_rows(min_row=2, values_only=True):
-            # ensure that the sheet has the minimum number of rows, even if data is excluded.
-            while len(row) < 5:
-                row += ("",)
-            # for each element in dictionary, match key (based on value) to criteria
-            for key, value in self.column_mapping.items():
-                match value:
-                    case "event_summary":
-                        summary = row[key-1]
-                    case "start_date":
-                        start_date = row[key-1]
-                    case "start_time":
-                        start_time = row[key-1]
-                    case "end_date":
-                        end_date = row[key-1]
-                    case "end_time":
-                        end_time = row[key-1]
-                    case _:
-                        break
+            try:
+                # ensure that the sheet has the minimum number of rows, even if data is excluded.
+                while len(row) < 5:
+                    row += ("",)
+                # for each element in dictionary, match key (based on value) to criteria
+                for key, value in self.column_mapping.items():
+                    match value:
+                        case "event_summary":
+                            summary = row[int(key)]
+                        case "start_date":
+                            start_date = row[int(key)]
+                        case "start_time":
+                            start_time = row[int(key)]
+                        case "end_date":
+                            end_date = row[int(key)]
+                        case "end_time":
+                            end_time = row[int(key)]
+                        case _:
+                            break
 
-            event = Event()
-            event.add('summary', summary)
+                event = Event()
+                event.add('summary', summary)
 
-            # Combine date and time strings, then parse with dateutil.parser
-            start_datetime = parser.parse(f"{start_date} {start_time}")
-            end_datetime = parser.parse(f"{end_date} {end_time}")
+                # Combine date and time strings, then parse with dateutil.parser
+                start_datetime = parser.parse(f"{start_date} {start_time}")
+                end_datetime = parser.parse(f"{end_date} {end_time}")
 
-            # Set time zone
-            start_datetime = selected_tz.localize(start_datetime)
-            end_datetime = selected_tz.localize(end_datetime)
+                # Set time zone
+                start_datetime = selected_tz.localize(start_datetime)
+                end_datetime = selected_tz.localize(end_datetime)
 
-            event.add('dtstart', start_datetime)
-            event.add('dtend', end_datetime)
+                event.add('dtstart', start_datetime)
+                event.add('dtend', end_datetime)
 
-            cal.add_component(event)
+                cal.add_component(event)
+            
+            except Exception as e:
+                print(f"There was an error on row: {row}. Error: {e}")
+                print("")
+                # error checking
 
         if output_location:
             with open(output_location, 'wb') as f:
