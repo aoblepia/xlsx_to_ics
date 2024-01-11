@@ -8,6 +8,7 @@ from icalendar import Calendar, Event
 from itertools import zip_longest
 import pytz
 
+# uses pyqt5
 class ExcelToICalConverter(QWidget):
     def __init__(self):
         super().__init__()
@@ -31,6 +32,7 @@ class ExcelToICalConverter(QWidget):
         self.configure_button = QPushButton('Configure', self)
         self.configure_button.clicked.connect(self.match_columns)
 
+        # default to eastern, include all
         self.time_zone_label = QLabel('Select Default Time Zone:')
         self.time_zone_combobox = QComboBox(self)
         self.populate_time_zones()
@@ -78,7 +80,7 @@ class ExcelToICalConverter(QWidget):
 
     def browse_input(self):
         file_dialog = QFileDialog()
-        input_file, _ = file_dialog.getOpenFileName(self, 'Select Excel Spreadsheet')
+        input_file, _ = file_dialog.getOpenFileName(self, 'Select Excel Spreadsheet')   # filter *.xlsx? legacy files too
         if input_file:
             self.input_line_edit.setText(input_file)
             
@@ -101,7 +103,6 @@ class ExcelToICalConverter(QWidget):
 
     def match_columns(self):
         self.criteria = ["event_summary", "start_date", "start_time", "end_date", "end_time", "Ignore"]  # Add your criteria here
-        
 
         input_file = self.input_line_edit.text()  
         if input_file:
