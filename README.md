@@ -7,7 +7,7 @@ This tool takes an .xlsx spreadsheet and converts it to an .ics file for use on 
 1. **Clone the Repository:**
 
     ```bash
-    git clone https://github.com/your-username/excel-to-ical-converter.git
+    git clone https://github.com/aoblepia/xlsx_to_ics.git
     cd excel-to-ical-converter
     ```
 
